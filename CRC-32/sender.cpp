@@ -89,7 +89,7 @@ int main()
     string message; // Mensaje a enviar
     string encodedMessage; // Mensaje codificado
     
-    cout << "Emisor CRC-32" << endl;
+    cout << "Emisor de mensajes CRC-32" << endl;
     // Se muestra el polinomio generador
     cout << "Polinomio generador: " << POLY << endl;
     cout << endl;
@@ -102,7 +102,7 @@ int main()
     // Se realiza la codificación CRC-32
     encodedMessage = encodeCRC32(message, POLY);
     cout << endl;
-    
+
     // Se muestra el mensaje codificado
     cout << "Mensaje codificado: " << encodedMessage << endl;
 
