@@ -49,7 +49,7 @@ def decodeCRC32(message, polynomial):
     current_xor = module2division(message[:len(polynomial)], polynomial)
     current = len(polynomial)
 
-    while current < len(message):
+    while current != len(message):
         if len(current_xor) != len(polynomial):
             current_xor += message[current]
             current += 1
@@ -60,7 +60,7 @@ def decodeCRC32(message, polynomial):
         current_xor = module2division(current_xor, polynomial)
 
     if '1' in current_xor:
-        return "False"
+        return False
     else:
         return True
     
