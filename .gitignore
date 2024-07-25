@@ -32,6 +32,10 @@
 *.out
 *.app
 
+# C++ Visual Studio code auto-generated files
+.vscode/
+
+
 # Python config
 # Byte-compiled / optimized / DLL files
 __pycache__/
