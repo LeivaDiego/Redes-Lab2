@@ -1,7 +1,7 @@
 #include <iostream>
-#include <vector>
 #include <string>
 #include <bitset>
+#include <random>
 #include <algorithm>
 
 using namespace std;
@@ -153,9 +153,32 @@ string stringToBinaryASCII(const string &input) {
     return result;
 }
 
+// Funcion que aplica ruido a un string codificado con probabilidad p
+string applyNoise(string message, double probability) {
+    random_device rd;
+    mt19937 gen(rd());
+    bernoulli_distribution dist(probability);
+
+    int msg_length = message.length();
+
+    // Iterar por cada bit del mensaje
+    for (int i = 0; i < msg_length; ++i) {
+        if (dist(gen)) {
+            // Invertir el bit
+            message[i] = (message[i] == '0') ? '1' : '0';
+        }
+    }
+
+    // Retornar el mensaje con ruido
+    return message;
+}
+
 
 int main() {
     string choice, message, encodedMessage;
+    
+    double probability = 0.001;
+
     CRC32Enconder crc;
     HammingEncoder hamming;
 
@@ -171,25 +194,29 @@ int main() {
 
     // Convertir el mensaje a su representacion binaria ASCII
     string binaryASCII = stringToBinaryASCII(message);
-    
-    cout << endl;
-    
-    if (choice == "1") {
-        // Se realiza la codificación Hamming
-        cout << "Codificacion con Hamming:" << endl;
-        encodedMessage = hamming.encode(binaryASCII);
-        // Se muestra el mensaje codificado
-        cout << "Encoded message: " << encodedMessage << endl;
 
-    } else if (choice == "2") {
-        // Se realiza la codificación CRC-32
-        cout << "Codificacion con CRC-32:" << endl;
-        encodedMessage = crc.encodeCRC32(binaryASCII);
-        // Se muestra el mensaje codificado
-        cout << "Encoded message: " << encodedMessage << endl;
-    } else {
-        cout << "Invalid choice" << endl;
-    }
+    // Aplicar ruido a un mensaje codificado
+    string noisyMessage = applyNoise(binaryASCII, probability);
+    cout << "Noisy message: " << noisyMessage << endl;
+    
+    // cout << endl;
+    
+    // if (choice == "1") {
+    //     // Se realiza la codificación Hamming
+    //     cout << "Codificacion con Hamming:" << endl;
+    //     encodedMessage = hamming.encode(binaryASCII);
+    //     // Se muestra el mensaje codificado
+    //     cout << "Encoded message: " << encodedMessage << endl;
+
+    // } else if (choice == "2") {
+    //     // Se realiza la codificación CRC-32
+    //     cout << "Codificacion con CRC-32:" << endl;
+    //     encodedMessage = crc.encodeCRC32(binaryASCII);
+    //     // Se muestra el mensaje codificado
+    //     cout << "Encoded message: " << encodedMessage << endl;
+    // } else {
+    //     cout << "Invalid choice" << endl;
+    // }
 
     return 0;
 }
