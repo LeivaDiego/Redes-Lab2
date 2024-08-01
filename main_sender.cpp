@@ -6,8 +6,10 @@
 
 using namespace std;
 
+// Clase que realiza la codificacion CRC-32
 class CRC32Enconder {
 private:
+    // Polinomio generador CRC-32
     const string POLY = "100000100110000010001110110110111"; //  0xEDB88320
 
     // Funcion que aplica XOR entre dos strings
@@ -80,12 +82,65 @@ public:
         // Se obtiene el mensaje codificado
         string encoded_message = message + remainder;
 
-        // Se retorna el mensaje codificado y el residuo
+        // Se retorna el mensaje codificado
         return encoded_message;
     }
 
 };
 
+// Clase que realiza la codificacion Hamming
+class HammingEncoder {
+public:
+    // Funcion que realiza la codificacion Hamming
+    string encode(string data) {
+        int m = data.size();
+        int r = 0;
+        int power = 1;
+
+        // Encontrar el numero de bits redundantes
+        while (power < (m + r + 1)) {
+            r++;
+            power *= 2;
+        }
+
+        // Asignar memoria para el mensaje con datos y bits redundantes
+        string msg(m + r + 1, '0'); // Inicializar con '0'
+
+        int curr = 0;
+        // Inicializar el mensaje con bits de datos y '0' para bits redundantes
+        for (int i = 1; i <= m + r; i++) {
+            if (i & (i - 1)) {
+                msg[i] = data[curr++];
+            }
+        }
+
+        // Calcular la paridad para los bits redundantes
+        setRedundantBits(msg, m, r);
+
+        // Retornar el mensaje codificado
+        return msg.substr(1);
+    }
+
+private:
+    // Funcion que calcula los bits redundantes
+    void setRedundantBits(string &msg, int m, int r) {
+        // Calcular la paridad para los bits redundantes
+        // basado en paridad par
+        for (int i = 0; i < r; i++) {
+            int pos = (1 << i);
+            int count = 0;
+
+            for (int j = pos; j <= m + r; j++) {
+                if (j & pos) {
+                    if (msg[j] == '1') count++;
+                }
+            }
+
+            // Asignar el bit redundante
+            msg[pos] = (count & 1) ? '1' : '0';
+        }
+    }
+};
 
 // Funcion que convierte un string a su representacion binaria ASCII
 string stringToBinaryASCII(const string &input) {
@@ -102,6 +157,7 @@ string stringToBinaryASCII(const string &input) {
 int main() {
     string choice, message, encodedMessage;
     CRC32Enconder crc;
+    HammingEncoder hamming;
 
     cout << "Encoding methods: " << endl ;
     cout << "- [1] Hamming Encoding" << endl;
@@ -113,13 +169,17 @@ int main() {
     cin.ignore(); // Ignore newline character left in buffer
     getline(cin, message);
 
-    // Convert message to binary ASCII
+    // Convertir el mensaje a su representacion binaria ASCII
     string binaryASCII = stringToBinaryASCII(message);
     
     cout << endl;
     
     if (choice == "1") {
-        
+        // Se realiza la codificación Hamming
+        cout << "Codificacion con Hamming:" << endl;
+        encodedMessage = hamming.encode(binaryASCII);
+        // Se muestra el mensaje codificado
+        cout << "Encoded message: " << encodedMessage << endl;
 
     } else if (choice == "2") {
         // Se realiza la codificación CRC-32
