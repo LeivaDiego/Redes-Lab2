@@ -150,48 +150,18 @@ import socket
 def solicitar_cadena_binaria():
     return input("Ingresa la cadena binaria que deseas enviar: ")
 
-# Capa de presentación: Codificar mensaje utilizando código Hamming
-def calcular_bits_paridad(bits):
-    m = len(bits)
-    r = 0
-    
-    while (2**r) < (m + r + 1):
-        r += 1
-        
-    hamming_code = [0] * (m + r)
-    
-    j = 0
-    k = 1
-    
-    for i in range(1, len(hamming_code) + 1):
-        if i == 2**j:
-            j += 1
-        else:
-            hamming_code[i - 1] = int(bits[-k])
-            k += 1
-            
-    for i in range(r):
-        pos = 2**i
-        count = 0
-        for j in range(1, len(hamming_code) + 1):
-            if j & pos and hamming_code[j - 1] == 1:
-                count += 1
-        hamming_code[pos - 1] = count % 2
-        
-    return ''.join(map(str, hamming_code))
-
 # Capa de transmisión: Enviar información
-def enviar_informacion(mensaje_codificado):
+def enviar_informacion(cadena_binaria):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect(('localhost', 65432))
-        s.sendall(mensaje_codificado.encode())
+        s.sendall(cadena_binaria.encode())
 
 def main():
     cadena_binaria = solicitar_cadena_binaria()
-    mensaje_codificado = calcular_bits_paridad(cadena_binaria)
-    print(f"Cadena binaria enviada: {mensaje_codificado}")  # Depuración
-    enviar_informacion(mensaje_codificado)
+    print(f"Cadena binaria enviada: {cadena_binaria}")  # Depuración
+    enviar_informacion(cadena_binaria)
 
 if __name__ == "__main__":
     main()
+
 
