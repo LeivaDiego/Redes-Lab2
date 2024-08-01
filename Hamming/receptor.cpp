@@ -1,3 +1,4 @@
+/**
 #include <iostream>
 #include <string>
 #include <bitset>
@@ -135,3 +136,84 @@ int main() {
     cout << "Mensaje decodificado: " << mensaje << endl; // Mensaje de depuración final
     return 0;
 }
+**/
+
+#include <iostream>
+#include <string>
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+
+using namespace std;
+
+// Inicializar Winsock
+void inicializar_winsock() {
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) {
+        cerr << "WSAStartup failed: " << result << endl;
+        exit(1);
+    }
+}
+
+// Capa de transmisión: Recibir información
+string recibir_informacion() {
+    inicializar_winsock();
+    
+    SOCKET server_fd, new_socket;
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+    char buffer[1024] = {0};
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd == INVALID_SOCKET) {
+        cerr << "Socket failed: " << WSAGetLastError() << endl;
+        WSACleanup();
+        exit(1);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(65432);
+
+    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) == SOCKET_ERROR) {
+        cerr << "Bind failed: " << WSAGetLastError() << endl;
+        closesocket(server_fd);
+        WSACleanup();
+        exit(1);
+    }
+
+    if (listen(server_fd, 3) == SOCKET_ERROR) {
+        cerr << "Listen failed: " << WSAGetLastError() << endl;
+        closesocket(server_fd);
+        WSACleanup();
+        exit(1);
+    }
+
+    new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
+    if (new_socket == INVALID_SOCKET) {
+        cerr << "Accept failed: " << WSAGetLastError() << endl;
+        closesocket(server_fd);
+        WSACleanup();
+        exit(1);
+    }
+
+    int valread = recv(new_socket, buffer, 1024, 0);
+    if (valread == SOCKET_ERROR) {
+        cerr << "Recv failed: " << WSAGetLastError() << endl;
+    }
+
+    closesocket(new_socket);
+    closesocket(server_fd);
+    WSACleanup();
+
+    return string(buffer, valread);
+}
+
+int main() {
+    string cadena_lista = recibir_informacion();
+    cout << "Cadena JSON recibida: " << cadena_lista << endl;  // Depuración
+    return 0;
+}
+
+
+
