@@ -175,7 +175,8 @@ string applyNoise(string message, double probability) {
 
 
 int main() {
-    string choice, message, encodedMessage;
+    
+    string choice, message, encodedMessage, noisyMessage;
     
     double probability = 0.001;
 
@@ -187,36 +188,39 @@ int main() {
     cout << "- [2] CRC-32 Encoding" << endl;
     cout << "Enter choice: ";
     cin >> choice;
-
+    
     cout << "Enter message to encode: ";
     cin.ignore(); // Ignore newline character left in buffer
     getline(cin, message);
 
     // Convertir el mensaje a su representacion binaria ASCII
     string binaryASCII = stringToBinaryASCII(message);
-
-    // Aplicar ruido a un mensaje codificado
-    string noisyMessage = applyNoise(binaryASCII, probability);
-    cout << "Noisy message: " << noisyMessage << endl;
     
-    // cout << endl;
+    cout << endl;
     
-    // if (choice == "1") {
-    //     // Se realiza la codificación Hamming
-    //     cout << "Codificacion con Hamming:" << endl;
-    //     encodedMessage = hamming.encode(binaryASCII);
-    //     // Se muestra el mensaje codificado
-    //     cout << "Encoded message: " << encodedMessage << endl;
+    if (choice == "1") {
+        // Se realiza la codificación Hamming
+        cout << "Codificacion con Hamming:" << endl;
+        encodedMessage = hamming.encode(binaryASCII);
+        // Se muestra el mensaje codificado
+        cout << "Encoded message: " << encodedMessage << endl;
+        // Aplicar ruido a un mensaje codificado
+        noisyMessage = applyNoise(binaryASCII, probability);
+        cout << "Noisy message: " << noisyMessage << endl;
 
-    // } else if (choice == "2") {
-    //     // Se realiza la codificación CRC-32
-    //     cout << "Codificacion con CRC-32:" << endl;
-    //     encodedMessage = crc.encodeCRC32(binaryASCII);
-    //     // Se muestra el mensaje codificado
-    //     cout << "Encoded message: " << encodedMessage << endl;
-    // } else {
-    //     cout << "Invalid choice" << endl;
-    // }
+    } else if (choice == "2") {
+        // Se realiza la codificación CRC-32
+        cout << "Codificacion con CRC-32:" << endl;
+        encodedMessage = crc.encodeCRC32(binaryASCII);
+        // Se muestra el mensaje codificado
+        cout << "Encoded message: " << encodedMessage << endl;
+        // Aplicar ruido a un mensaje codificado
+        noisyMessage = applyNoise(binaryASCII, probability);
+        cout << "Noisy message: " << noisyMessage << endl;
+
+    } else {
+        cout << "Invalid choice" << endl;
+    }
 
     return 0;
 }
