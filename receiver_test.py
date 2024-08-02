@@ -1,4 +1,5 @@
 import socket
+import matplotlib.pyplot as plt
 
 class CRC32Decoder:
     def __init__(self):
@@ -98,6 +99,11 @@ def main():
     conn, addr = server_socket.accept()
     print(f"Conectado por: {addr}")
 
+    # Variables para almacenar resultados
+    correct_decodings = 0
+    incorrect_decodings = 0
+    encoder_type = None
+
     while True:
         data = conn.recv(1024).decode('utf-8')
         if not data:
@@ -117,18 +123,50 @@ def main():
             print(f"Tipo de codificación: {'Hamming' if encoder_type == '1' else 'CRC-32'}")
             print(f"Tiene error: {has_error}")
 
+            decoded_message = ""
             if encoder_type == '1':
                 decoded_message = hamming.decode(noisy_message)
-                print(f"Mensaje decodificado: {decoded_message}\n")
+                if decoded_message == original_message:
+                    correct_decodings += 1
+                else:
+                    incorrect_decodings += 1
             else:
                 if crc32.detectError(noisy_message):
                     decoded_message = crc32.decode(noisy_message)
-                    print(f"Mensaje decodificado: {decoded_message}\n")
+                    if decoded_message == original_message:
+                        correct_decodings += 1
+                    else:
+                        incorrect_decodings += 1
                 else:
-                    print("Error de CRC detectado.\n")
+                    if has_error:
+                        incorrect_decodings += 1
+
+            print(f"Mensaje decodificado: {decoded_message}\n")
 
     conn.close()
     server_socket.close()
+
+    # Determinar el tipo de codificador
+    if encoder_type == '1':
+        encoder_name = 'Hamming'
+    else:
+        encoder_name = 'CRC-32'
+
+    # Graficar los resultados
+    labels = ['Aciertos', 'Fallos']
+    values = [correct_decodings, incorrect_decodings]
+    messageLength = 3 # Longitud de cada mensaje
+    probability = 0.001; # Probabilidad de ruido
+    plt.bar(labels, values, color=['green', 'red'])
+    plt.xlabel('Resultado')
+    plt.ylabel('Número de Mensajes')
+    plt.title(f'Resultados de Decodificación - {encoder_name}')
+    plt.text(0.5, 0.5, f"Cadenas de longitud {messageLength} con probabilidad {probability} de fallo",
+             horizontalalignment='center', verticalalignment='center',
+             fontsize=10, bbox=dict(facecolor='white', alpha=0.5))
+    filename = f'resultadosDecodificacion_{encoder_name}P{probability}N{messageLength}.png'
+    plt.savefig(filename)  # Guardar la gráfica en un archivo
+    plt.show()
 
 if __name__ == "__main__":
     main()

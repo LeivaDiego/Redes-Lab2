@@ -134,7 +134,7 @@ string generateRandomString(int length) {
 int main() {
     // Parametros configurables
     int numMessages = 5; // Cantidad de mensajes a enviar
-    int messageLength = 3; // Longitud de cada mensaje
+    int messageLength = 1; // Longitud de cada mensaje
     string choice = "1"; // "1" para Hamming, "2" para CRC-32
     double probability = 0.001; // Probabilidad de ruido
 
