@@ -1,4 +1,5 @@
 import socket
+import binascii
 
 # Función para decodificar utilizando Hamming (7,4)
 def decodificar_hamming(bits):
@@ -19,6 +20,7 @@ def decodificar_hamming(bits):
             error_pos += pos
     
     if error_pos:
+        print(f"Error detectado en la posición: {error_pos}")
         bits = list(bits)
         bits[error_pos - 1] = '1' if bits[error_pos - 1] == '0' else '0'
         bits = ''.join(bits)
@@ -31,12 +33,33 @@ def decodificar_hamming(bits):
         else:
             j += 1
     
-    return mensaje
+    return mensaje, error_pos
 
 # Función para decodificar utilizando CRC-32
 def decodificar_crc32(bits):
     data_length = len(bits) - 32
-    return bits[:data_length]
+    datos = bits[:data_length]
+    crc32_recibido = bits[data_length:]
+    mensaje = convertir_binario_a_texto(datos)
+    crc32_calculado = format(binascii.crc32(mensaje.encode()) & 0xFFFFFFFF, '032b')
+    
+    if crc32_recibido == crc32_calculado:
+        print("No se detectaron errores.")
+        error_detectado = False
+    else:
+        print("Error de CRC detectado.")
+        error_detectado = True
+    
+    return datos, error_detectado
+
+# Convertir binario a texto
+def convertir_binario_a_texto(binario):
+    mensaje = ''
+    for i in range(0, len(binario), 8):
+        byte = binario[i:i+8]
+        caracter = chr(int(byte, 2))
+        mensaje += caracter
+    return mensaje
 
 # Convertir la cadena binaria decodificada en caracteres ASCII
 def convertir_binario_a_ascii(mensaje_binario):
@@ -82,9 +105,13 @@ def main():
     print(f"Cadena binaria recibida: {cadena_binaria}")
 
     if opcion == '1':
-        mensaje_binario = decodificar_hamming(cadena_binaria)
+        mensaje_binario, error_pos = decodificar_hamming(cadena_binaria)
+        if error_pos:
+            print(f"Se corrigió un error en la posición: {error_pos}")
     elif opcion == '2':
-        mensaje_binario = decodificar_crc32(cadena_binaria)
+        mensaje_binario, error_detectado = decodificar_crc32(cadena_binaria)
+        if error_detectado:
+            print("Se detectó un error en el CRC-32.")
 
     print(f"Cadena binaria decodificada: {mensaje_binario}")  # Añadido para mostrar la cadena binaria pura
     mensaje = convertir_binario_a_ascii(mensaje_binario)
