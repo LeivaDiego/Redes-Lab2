@@ -3,6 +3,11 @@
 #include <bitset>
 #include <random>
 #include <algorithm>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <cstring>
+#include <arpa/inet.h>
 
 using namespace std;
 
@@ -175,6 +180,31 @@ string applyNoise(string message, double probability) {
 
 
 int main() {
+
+    // Creacion de socket
+    int sock = 0;
+    struct sockaddr_in serv_addr;
+    
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        cerr << "Socket creation error" << endl;
+        return -1;
+    }
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(8080); // Puerto de escucha
+
+    // Convertir la direccion IP a binario
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        cerr << "Invalid address/ Address not supported" << endl;
+        return -1;
+    }
+
+    // Conectar al servidor
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        cerr << "Connection Failed" << endl;
+        return -1;
+    }
+
     
     string choice, message, encodedMessage, noisyMessage;
     
@@ -205,8 +235,11 @@ int main() {
         // Se muestra el mensaje codificado
         cout << "Encoded message: " << encodedMessage << endl;
         // Aplicar ruido a un mensaje codificado
-        noisyMessage = applyNoise(binaryASCII, probability);
+        noisyMessage = applyNoise(encodedMessage, probability);
         cout << "Noisy message: " << noisyMessage << endl;
+        // Enviar mensaje codificado al servidor
+        send(sock, noisyMessage.c_str(), noisyMessage.size(), 0);
+        cout << "Message sent to server" << endl;
 
     } else if (choice == "2") {
         // Se realiza la codificación CRC-32
@@ -215,12 +248,18 @@ int main() {
         // Se muestra el mensaje codificado
         cout << "Encoded message: " << encodedMessage << endl;
         // Aplicar ruido a un mensaje codificado
-        noisyMessage = applyNoise(binaryASCII, probability);
+        noisyMessage = applyNoise(encodedMessage, probability);
         cout << "Noisy message: " << noisyMessage << endl;
+        // Enviar mensaje codificado al servidor
+        send(sock, noisyMessage.c_str(), noisyMessage.size(), 0);
+        cout << "Message sent to server" << endl;
+
 
     } else {
         cout << "Invalid choice" << endl;
     }
+
+    close(sock);
 
     return 0;
 }
