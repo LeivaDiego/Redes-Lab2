@@ -41,7 +41,10 @@ class CRC32Decoder:
                 current_xor = self.module2division(current_xor, self.polynomial)
         if len(current_xor) == len(self.polynomial):
             current_xor = self.module2division(current_xor, self.polynomial)
-        return '1' not in current_xor
+        if '1' in current_xor:
+            return False
+        else:
+            return True
 
     def decode(self, message):
         message = message[:-32]
@@ -52,9 +55,14 @@ class HammingDecoder:
         bits = list(message)
         n = len(bits)
         r = 0
+
+        # Determinar el número de bits de paridad
         while (2 ** r) < (n + 1):
             r += 1
+
         error_pos = 0
+
+        # Verificar y encontrar la posición del error
         for i in range(r):
             pos = 2 ** i
             count = 0
@@ -63,13 +71,21 @@ class HammingDecoder:
                     count += 1
             if count % 2 != 0:
                 error_pos += pos
+
         if error_pos:
-            print(f"Error detectado en la posición: {error_pos}")
-            bits[error_pos - 1] = '1' if bits[error_pos - 1] == '0' else '0'
-            bits = ''.join(bits)
+            # Verificar si la posición del error está dentro del rango válido
+            if 1 <= error_pos <= n:
+                print(f"Error detectado en la posición: {error_pos}")
+                bits[error_pos - 1] = '1' if bits[error_pos - 1] == '0' else '0'
+                bits = ''.join(bits)
+            else:
+                print(f"Error detectado en la posición: {error_pos}, pero está fuera del rango.")
+                # Si el error está fuera del rango, se cuenta como un fallo
+                return "Error fuera de rango"
         else:
             print("No se detectaron errores.")
             bits = ''.join(bits)
+
         mensaje = ''
         j = 0
         for i in range(1, n + 1):
@@ -77,6 +93,7 @@ class HammingDecoder:
                 mensaje += bits[i - 1]
             else:
                 j += 1
+
         return binary_to_ascii(mensaje)
 
 def binary_to_ascii(binary_str):
@@ -119,29 +136,36 @@ def main():
 
             print(f"Mensaje original: {original_message}")
             print(f"Mensaje codificado: {encoded_message}")
-            print(f"Mensaje con ruido: {noisy_message}")
+            print(f"Mensaje con ruido:  {noisy_message}")
             print(f"Tipo de codificación: {'Hamming' if encoder_type == '1' else 'CRC-32'}")
             print(f"Tiene error: {has_error}")
 
             decoded_message = ""
             if encoder_type == '1':
                 decoded_message = hamming.decode(noisy_message)
-                if decoded_message == original_message:
+                print(f"Mensaje decodificado: {decoded_message}\n")
+                if decoded_message == "Error fuera de rango":
+                    # Si se detecta un error fuera de rango, cuenta como fallo
+                    incorrect_decodings += 1
+                elif decoded_message == original_message:
+                    
                     correct_decodings += 1
                 else:
                     incorrect_decodings += 1
             else:
-                if crc32.detectError(noisy_message):
-                    decoded_message = crc32.decode(noisy_message)
-                    if decoded_message == original_message:
-                        correct_decodings += 1
-                    else:
-                        incorrect_decodings += 1
-                else:
+                crc32_Error = crc32.detectError(noisy_message)
+                if crc32_Error:
+                    print("No se detectaron errores.")
                     if has_error:
                         incorrect_decodings += 1
-
-            print(f"Mensaje decodificado: {decoded_message}\n")
+                    else:
+                        decoded_message = crc32.decode(noisy_message)
+                        print(f"Mensaje decodificado: {decoded_message}\n")
+                        correct_decodings += 1
+                else:
+                    print("Error detectado.")
+                    correct_decodings += 1
+                    
 
     conn.close()
     server_socket.close()
@@ -155,18 +179,26 @@ def main():
     # Graficar los resultados
     labels = ['Aciertos', 'Fallos']
     values = [correct_decodings, incorrect_decodings]
-    messageLength = 3 # Longitud de cada mensaje
+   
+    messageLength = 30 # Longitud de cada mensaje
     probability = 0.001; # Probabilidad de ruido
-    plt.bar(labels, values, color=['green', 'red'])
+    
+    bars = plt.bar(labels, values, color=['green', 'red'])    # Mostrar los valores en las barras
+    
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, height, 
+                str(height), ha='center', va='bottom', fontsize=10)
+
     plt.xlabel('Resultado')
     plt.ylabel('Número de Mensajes')
     plt.title(f'Resultados de Decodificación - {encoder_name}')
-    plt.text(0.5, 0.5, f"Cadenas de longitud {messageLength} con probabilidad {probability} de fallo",
-             horizontalalignment='center', verticalalignment='center',
-             fontsize=10, bbox=dict(facecolor='white', alpha=0.5))
-    filename = f'resultadosDecodificacion_{encoder_name}P{probability}N{messageLength}.png'
+    plt.suptitle(f"Cadenas de longitud {messageLength} con probabilidad {probability} de fallo", fontsize=10, y=0.98)
+    
+    filename = f'resultadosDecodificacion_{encoder_name}_P{probability}_N{messageLength}.png'
     plt.savefig(filename)  # Guardar la gráfica en un archivo
     plt.show()
+
 
 if __name__ == "__main__":
     main()
