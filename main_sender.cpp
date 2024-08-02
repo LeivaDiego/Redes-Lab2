@@ -213,14 +213,16 @@ int main() {
     CRC32Enconder crc;
     HammingEncoder hamming;
 
-    cout << "Encoding methods: " << endl ;
-    cout << "- [1] Hamming Encoding" << endl;
-    cout << "- [2] CRC-32 Encoding" << endl;
-    cout << "Enter choice: ";
+    cout << "---------------------------------------" << endl;
+    cout << "| Elija un Algoritmo de codificacion: |" << endl;
+    cout << "|  - [1] Hamming Encoding             |" << endl;
+    cout << "|  - [2] CRC-32 Encoding              |" << endl;
+    cout << "---------------------------------------" << endl;
+    cout << "Seleccione una opcion (1 o 2): ";
     cin >> choice;
     
-    cout << "Enter message to encode: ";
-    cin.ignore(); // Ignore newline character left in buffer
+    cout << "Ingrese mensaje a codificar: ";
+    cin.ignore(); // Ignorar el salto de linea
     getline(cin, message);
 
     // Convertir el mensaje a su representacion binaria ASCII
@@ -232,32 +234,24 @@ int main() {
         // Se realiza la codificación Hamming
         cout << "Codificacion con Hamming:" << endl;
         encodedMessage = hamming.encode(binaryASCII);
-        // Se muestra el mensaje codificado
-        cout << "Encoded message: " << encodedMessage << endl;
-        // Aplicar ruido a un mensaje codificado
-        noisyMessage = applyNoise(encodedMessage, probability);
-        cout << "Noisy message: " << noisyMessage << endl;
-        // Enviar mensaje codificado al servidor
-        send(sock, noisyMessage.c_str(), noisyMessage.size(), 0);
-        cout << "Message sent to server" << endl;
 
     } else if (choice == "2") {
         // Se realiza la codificación CRC-32
         cout << "Codificacion con CRC-32:" << endl;
         encodedMessage = crc.encodeCRC32(binaryASCII);
-        // Se muestra el mensaje codificado
-        cout << "Encoded message: " << encodedMessage << endl;
-        // Aplicar ruido a un mensaje codificado
-        noisyMessage = applyNoise(encodedMessage, probability);
-        cout << "Noisy message: " << noisyMessage << endl;
-        // Enviar mensaje codificado al servidor
-        send(sock, noisyMessage.c_str(), noisyMessage.size(), 0);
-        cout << "Message sent to server" << endl;
-
 
     } else {
-        cout << "Invalid choice" << endl;
+        cout << "Opcion no valida" << endl;
     }
+
+    // Se muestra el mensaje codificado
+    cout << "Mensaje codificado: " << encodedMessage << endl;
+    // Aplicar ruido a un mensaje codificado
+    noisyMessage = applyNoise(encodedMessage, probability);
+    cout << "Mensaje con ruido:  " << noisyMessage << endl;
+    // Enviar mensaje codificado al servidor
+    send(sock, noisyMessage.c_str(), noisyMessage.size(), 0);
+    cout << "Mensaje enviado al servidor" << endl;
 
     close(sock);
 
